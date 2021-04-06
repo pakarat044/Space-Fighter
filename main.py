@@ -1,4 +1,5 @@
 import math
+from abc import abstractmethod, ABC
 from random import randint, random
 
 import tkinter as tk
@@ -32,6 +33,11 @@ class SpaceGame(GameApp):
 
         self.enemies = []
         self.bullets = []
+
+        self.enemy_creation_strategies = [
+            (0.2, StarEnemyGenerationStrategy()),
+            (1.0, EdgeEnemyGenerationStrategy())
+        ]
 
     def add_enemy(self, enemy):
         self.enemies.append(enemy)
@@ -84,38 +90,13 @@ class SpaceGame(GameApp):
             self.bomb_wait = 0
             self.update_bomb_power_text()
 
-    def create_enemy_star(self):
-        enemies = []
-
-        x = randint(100, CANVAS_WIDTH - 100)
-        y = randint(100, CANVAS_HEIGHT - 100)
-
-        while vector_len(x - self.ship.x, y - self.ship.y) < 200:
-            x = randint(100, CANVAS_WIDTH - 100)
-            y = randint(100, CANVAS_HEIGHT - 100)
-
-        for d in range(18):
-            dx, dy = direction_to_dxdy(d * 20)
-            enemy = Enemy(self, x, y, dx * ENEMY_BASE_SPEED, dy * ENEMY_BASE_SPEED)
-            enemies.append(enemy)
-
-        return enemies
-
-    def create_enemy_from_edges(self):
-        x, y = random_edge_position()
-        vx, vy = normalize_vector(self.ship.x - x, self.ship.y - y)
-
-        vx *= ENEMY_BASE_SPEED
-        vy *= ENEMY_BASE_SPEED
-
-        enemy = Enemy(self, x, y, vx, vy)
-        return [enemy]
-
     def create_enemies(self):
-        if random() < 0.2:
-            enemies = self.create_enemy_star()
-        else:
-            enemies = self.create_enemy_from_edges()
+        p = random()
+
+        for prob, strategy in self.enemy_creation_strategies:
+            if p < prob:
+                enemies = strategy.generate(self, self.ship)
+                break
 
         for e in enemies:
             self.add_enemy(e)
@@ -176,6 +157,42 @@ class SpaceGame(GameApp):
         elif event.keysym == 'Right':
             self.ship.stop_turn('RIGHT')
 
+
+class EnemyGenerationStrategy(ABC):
+    @abstractmethod
+    def generate(self, space_game, ship):
+        pass
+
+
+class StarEnemyGenerationStrategy(EnemyGenerationStrategy):
+    def generate(self, space_game, ship):
+        enemies = []
+
+        x = randint(100, CANVAS_WIDTH - 100)
+        y = randint(100, CANVAS_HEIGHT - 100)
+
+        while vector_len(x - ship.x, y - ship.y) < 200:
+            x = randint(100, CANVAS_WIDTH - 100)
+            y = randint(100, CANVAS_HEIGHT - 100)
+
+        for d in range(18):
+            dx, dy = direction_to_dxdy(d * 20)
+            enemy = Enemy(space_game, x, y, dx * ENEMY_BASE_SPEED, dy * ENEMY_BASE_SPEED)
+            enemies.append(enemy)
+
+        return enemies
+
+
+class EdgeEnemyGenerationStrategy(EnemyGenerationStrategy):
+    def generate(self, space_game, ship):
+        x, y = random_edge_position()
+        vx, vy = normalize_vector(ship.x - x, ship.y - y)
+
+        vx *= ENEMY_BASE_SPEED
+        vy *= ENEMY_BASE_SPEED
+
+        enemy = Enemy(space_game, x, y, vx, vy)
+        return [enemy]
 
 if __name__ == "__main__":
     root = tk.Tk()
