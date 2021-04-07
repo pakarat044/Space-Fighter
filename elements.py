@@ -7,6 +7,7 @@ from consts import *
 
 from utils import direction_to_dxdy, distance
 
+
 class FixedDirectionSprite(Sprite):
     def __init__(self, app, image_filename, x, y, vx, vy):
         super().__init__(app, image_filename, x, y)
@@ -23,7 +24,8 @@ class FixedDirectionSprite(Sprite):
 
 class Bullet(FixedDirectionSprite):
     def __init__(self, app, x, y, vx, vy):
-        super().__init__(app, 'images/bullet1.png', x, y, vx, vy)
+        super().__init__(app,
+                         '/Users/pakarat/Desktop/compro2/SpaceFighter/images/bullet1.gif', x, y, vx, vy)
 
     def is_colliding_with_enemy(self, enemy):
         return self.is_within_distance(enemy, BULLET_ENEMY_HIT_RADIUS)
@@ -31,12 +33,13 @@ class Bullet(FixedDirectionSprite):
 
 class Enemy(FixedDirectionSprite):
     def __init__(self, app, x, y, vx, vy):
-        super().__init__(app, 'images/enemy1.png', x, y, vx, vy)
+        super().__init__(app,
+                         '/Users/pakarat/Desktop/compro2/SpaceFighter/images/enemy1.gif', x, y, vx, vy)
 
 
 class Ship(Sprite):
     def __init__(self, app, x, y):
-        super().__init__(app, 'images/ship.png', x, y)
+        super().__init__(app, '/Users/pakarat/Desktop/compro2/SpaceFighter/images/ship.gif', x, y)
 
         self.app = app
 
@@ -45,7 +48,7 @@ class Ship(Sprite):
         self.is_turning_right = False
 
     def update(self):
-        dx,dy = direction_to_dxdy(self.direction)
+        dx, dy = direction_to_dxdy(self.direction)
 
         self.x += dx * SHIP_SPEED
         self.y += dy * SHIP_SPEED
@@ -82,9 +85,9 @@ class Ship(Sprite):
         if self.app.bullet_count() >= MAX_NUM_BULLETS:
             return
 
-        dx,dy = direction_to_dxdy(self.direction)
+        dx, dy = direction_to_dxdy(self.direction)
 
-        bullet = Bullet(self.app, self.x, self.y, dx * BULLET_BASE_SPEED, dy * BULLET_BASE_SPEED)
+        bullet = Bullet(self.app, self.x, self.y, dx *
+                        BULLET_BASE_SPEED, dy * BULLET_BASE_SPEED)
 
         self.app.add_bullet(bullet)
-
