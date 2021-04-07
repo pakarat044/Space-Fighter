@@ -23,7 +23,8 @@ class SpaceGame(GameApp):
         self.score = StatusWithText(self, 100, 20, 'Score: %d', 0)
 
         self.bomb_wait = 0
-        self.bomb_power = StatusWithText(self, 700, 20, 'Power: %d%%', BOMB_FULL_POWER)
+        self.bomb_power = StatusWithText(
+            self, 700, 20, 'Power: %d%%', BOMB_FULL_POWER)
 
         self.elements.append(self.ship)
 
@@ -39,7 +40,8 @@ class SpaceGame(GameApp):
 
     def init_key_handlers(self):
         key_pressed_handler = ShipMovementKeyPressedHandler(self, self.ship)
-        key_pressed_handler = BombKeyPressedHandler(self, self.ship, key_pressed_handler)
+        key_pressed_handler = BombKeyPressedHandler(
+            self, self.ship, key_pressed_handler)
         self.key_pressed_handler = key_pressed_handler
 
         key_released_handler = ShipMovementKeyReleasedHandler(self, self.ship)
@@ -58,18 +60,33 @@ class SpaceGame(GameApp):
         if self.bomb_power.value == BOMB_FULL_POWER:
             self.bomb_power.value = 0
 
-            self.bomb_canvas_id = self.canvas.create_oval(
-                self.ship.x - BOMB_RADIUS, 
-                self.ship.y - BOMB_RADIUS,
-                self.ship.x + BOMB_RADIUS, 
-                self.ship.y + BOMB_RADIUS
-            )
+            self.circle_drawing()
+            self.special_canvas()
 
-            self.after(200, lambda: self.canvas.delete(self.bomb_canvas_id))
+            self.enemy_destroying()
 
-            for e in self.enemies:
-                if self.ship.distance_to(e) <= BOMB_RADIUS:
-                    e.to_be_deleted = True
+    def circle_drawing(self):
+        self.bomb_canvas_id = self.canvas.create_oval(
+            self.ship.x - BOMB_RADIUS,
+            self.ship.y - BOMB_RADIUS,
+            self.ship.x + BOMB_RADIUS,
+            self.ship.y + BOMB_RADIUS
+        )
+
+    def special_canvas(self):
+        self.special_canvas_id = self.canvas.create_rectangle(
+            300, 300, 100, 100, fill="pink", outline='pink')
+
+    def __after(self, num, func):
+        self.after(num, func)
+
+    def enemy_destroying(self):
+        self.__after(200, lambda: self.canvas.delete(self.bomb_canvas_id))
+        self.__after(200, lambda: self.canvas.delete(self.special_canvas_id))
+
+        for e in self.enemies:
+            if self.ship.distance_to(e) <= BOMB_RADIUS:
+                e.to_be_deleted = True
 
     def update_score(self):
         self.score_wait += 1
@@ -112,6 +129,7 @@ class SpaceGame(GameApp):
 
     def process_collisions(self):
         self.process_bullet_enemy_collisions()
+        self.process_ship_enemy_collision()
 
     def update_and_filter_deleted(self, elements):
         new_list = []
@@ -154,7 +172,8 @@ class StarEnemyGenerationStrategy(EnemyGenerationStrategy):
 
         for d in range(18):
             dx, dy = direction_to_dxdy(d * 20)
-            enemy = Enemy(space_game, x, y, dx * ENEMY_BASE_SPEED, dy * ENEMY_BASE_SPEED)
+            enemy = Enemy(space_game, x, y, dx *
+                          ENEMY_BASE_SPEED, dy * ENEMY_BASE_SPEED)
             enemies.append(enemy)
 
         return enemies
@@ -233,7 +252,7 @@ class StatusWithText:
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Space Fighter")
- 
+
     # do not allow window resizing
     root.resizable(False, False)
     app = SpaceGame(root, CANVAS_WIDTH, CANVAS_HEIGHT, UPDATE_DELAY)
